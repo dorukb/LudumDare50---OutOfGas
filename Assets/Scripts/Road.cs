@@ -5,5 +5,27 @@ using UnityEngine;
 public class Road : MonoBehaviour
 {
     public Transform NextRoadPos;
+    public SpriteRenderer mainRenderer;
     public List<CarSpawnOption> CarSpawnOptions;
+
+    public GameObject regularColliders;
+    public GameObject stationColliders;
+
+    public Sprite stationRoad;
+    public Sprite regularRoad;
+    public void Setup(bool isStation)
+    {
+        if (isStation)
+        {
+            mainRenderer.sprite = stationRoad;
+            stationColliders.SetActive(true);
+            regularColliders.SetActive(false);
+        }
+        else
+        {
+            mainRenderer.sprite = regularRoad;
+            stationColliders.SetActive(false);
+            regularColliders.SetActive(true);
+        }
+    }
 }

@@ -4,18 +4,23 @@ using UnityEngine;
 public class Spawner : MonoBehaviour
 {
     public GameObject RoadPrefab;
+    public GameObject StationPrefab;
+
     public List<GameObject> VehiclePrefabs;
 
     public float CarSpawnProbability = 0.5f; //half of the tile will have cars.
     public int roadPoolSize = 5;
     public int vehiclePoolSize = 25;
 
-    public GameObject[] roads;
-    public GameObject[] vehicles;
+    public int stationSpawnPeriod = 5;
 
-    public int activeRoadIndex = 0;
-    public int activeVehicleIndex = 0;
+    private GameObject[] roads;
+    private GameObject[] vehicles;
 
+    private int activeRoadIndex = 0;
+    private int activeVehicleIndex = 0;
+
+    private int roadSpawnCount = 0;
     private void Awake()
     {
         roads = new GameObject[roadPoolSize];
@@ -25,6 +30,7 @@ public class Spawner : MonoBehaviour
         {
             roads[i] = Instantiate(RoadPrefab, Vector3.zero, Quaternion.identity);
             roads[i].SetActive(false);
+            roads[i].GetComponent<Road>().Setup(false);
         }
         activeRoadIndex = 0;
 
@@ -43,21 +49,32 @@ public class Spawner : MonoBehaviour
             Road roadScript = collision.GetComponent<Road>();
             if (roadScript != null)
             {
-                // Setup road tile
+                
                 GameObject newRoad = roads[activeRoadIndex];
                 newRoad.transform.position = roadScript.NextRoadPos.position;
                 newRoad.SetActive(true);
                 newRoad.name = activeRoadIndex.ToString();
-                activeRoadIndex = (activeRoadIndex+1) % roadPoolSize;
+                activeRoadIndex = (activeRoadIndex + 1) % roadPoolSize;
+                roadSpawnCount++;
 
-                if(CarSpawnProbability > Random.Range(0f,1f))
+                if (roadSpawnCount % stationSpawnPeriod == 0)
+                {
+                    // Setup as StationRoad
+                    newRoad.GetComponent<Road>().Setup(true);
+                }
+                else
+                {
+                    // Setup as regular road tile
+                    newRoad.GetComponent<Road>().Setup(false);
+                }
+
+
+                if (CarSpawnProbability > Random.Range(0f,1f))
                 {
                     // prob check passed, spawn cars in this tile.
 
                     // Setup vehicles on that tile
                     CarSpawnOption randSpawnOption = roadScript.CarSpawnOptions[Random.Range(0, roadScript.CarSpawnOptions.Count)];
-                    Debug.LogFormat("Will spawn: {0} vehicles.", randSpawnOption.SpawnPositions.Count);
-
                     foreach (Transform spawnPos in randSpawnOption.SpawnPositions)
                     {
                         // setup a vehicle from the pool to appear at that position.
@@ -66,7 +83,7 @@ public class Spawner : MonoBehaviour
 
                         // also give initial velocity to this vehicle.
                         NpcVehicle vehicleScript = vehicle.GetComponent<NpcVehicle>();
-                        vehicleScript.SetVelocity();
+                        vehicleScript.ResetCar();
 
                         vehicle.SetActive(true);
                         vehicle.name = activeVehicleIndex.ToString();
