@@ -3,22 +3,27 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class CarController : MonoBehaviour
 {
-
+    public enum VehicleType
+    {
+        YellowCar,
+        Motor,
+        // maybe a truck.
+    }
     [Header("Station fields")]
     public GameObject StationTriggerPopup;
     public GameObject StationUI;
     public float SlowDownTimeScale = 0.2f;
 
-    [Header("UI References")]
-    public TextMeshProUGUI velocityText;
-    public TextMeshProUGUI cruiseControlText;
-    public TextMeshProUGUI fuelConsumptionText;
-    public TextMeshProUGUI remainingFuelText;
-    public TextMeshProUGUI distanceTravelledText;
-    public TextMeshProUGUI engineWearText;
+
+    [Header("Player Vehicle")]
+    public SpriteRenderer playerVehicleRenderer;
+    public BoxCollider2D playerCollider;
+    public Vector2 motorColliderSize;
+    public Vector2 yellowCarColliderSize;
 
     [Header("Fuel Consumption")]
     public AnimationCurve FuelConsumptionCurve;
@@ -29,6 +34,7 @@ public class CarController : MonoBehaviour
     public float crashFuelCostPerct = 20f;
     public int crashStatusDecrease = 20; // lose 20% engine status.
     public float MaxFuel = 250f;
+    public float gasPedalUnpressedMaxDuration = 4f;
 
     [Range(0f, 100f)]
     // efficiency modifier/factor
@@ -66,16 +72,22 @@ public class CarController : MonoBehaviour
     private float remainingFuel;
     private float distanceTravelled = 0f;
     private float engineDurability = 100f;
+
+    private UiController uiController;
+    private Vehicle _currVehicle;
+    private float lastConsumption = 0f;
+
+
+    private float gasPedalUnpressedFor = 0f;
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
-        maxVelocityMgn = new Vector2(MaxSideWaysVelocity, MaxForwardVelocity).magnitude;
-        handbrakeFuelCost = handbrakeFuelCostPerct * MaxFuel / 100f;
-        crashFuelCost = crashFuelCostPerct * MaxFuel / 100f;
-
-        remainingFuel = MaxFuel;
+        uiController = FindObjectOfType<UiController>();
 
         Application.targetFrameRate = 120;
+
+        // use selecter vehicle parameters.
+        SetPlayerVehicle(GameManager.Instance.selectedVehicle);
     }
 
     public void OnAnotherCarCrash()
@@ -83,6 +95,7 @@ public class CarController : MonoBehaviour
         // lose gasoline here.
         // also slow down.
         crashed = true;
+        GameManager.Instance.PlayCrashSfx();
     }
     void Update()
     {
@@ -91,8 +104,24 @@ public class CarController : MonoBehaviour
         float vert = Input.GetAxisRaw("Vertical");
         float horz = Input.GetAxisRaw("Horizontal");
 
+
         bool handbrakeActive = false;
-        bool payCrashPenalty = false;
+        bool payCrashPenalty = false; 
+        
+        if (vert <= 0.01f && !isCruiseControlActive)
+        {
+            gasPedalUnpressedFor += Time.deltaTime;
+        }
+        else
+        {
+            gasPedalUnpressedFor = 0f;
+        }
+
+
+        float t = gasPedalUnpressedFor / 10f;
+        float velocityRatio = rb.velocity.y / MaxForwardVelocity;
+        if (t > 1) t = 1f;
+        GameManager.Instance.PlayEngineLoop(vert * velocityRatio, t);
 
         //Debug.LogFormat("Raw: ({0},{1})", horz, vert);
         Vector2 normalizedInputs = new Vector2(horz, vert).normalized;
@@ -101,6 +130,7 @@ public class CarController : MonoBehaviour
         horz = normalizedInputs.x;
         vert = normalizedInputs.y;
         //Debug.LogFormat("normalized: ({0},{1})", horz, vert);
+        
 
         if (Input.GetKeyDown(KeyCode.C))
         {   // toggle cruise control
@@ -121,8 +151,9 @@ public class CarController : MonoBehaviour
             // Handbrake, very fast deceleration.
             rb.AddForce(new Vector2(0, -HandbrakeForce * Time.deltaTime), ForceMode2D.Force);
             handbrakeActive = true;
+            GameManager.Instance.PlayHandbrakeSfx();
 
-            // handbraking disabled cruise control automatically.
+            // handbraking disables cruise control automatically.
             isCruiseControlActive = false;
             OnCruiseDisabled();
         }
@@ -133,11 +164,12 @@ public class CarController : MonoBehaviour
                 rb.velocity = new Vector2(rb.velocity.x, MinForwardVelocity);
             }
         }
+
         if (crashed)
         {
-            crashed = false;
-            rb.velocity = new Vector2(rb.velocity.x, VelocityAfterCrash);
-            payCrashPenalty = true; // lose gas.
+            // crashing disables cruise control automatically.
+            isCruiseControlActive = false;
+            OnCruiseDisabled();
         }
 
         #region Sideways movement
@@ -182,6 +214,9 @@ public class CarController : MonoBehaviour
 
         if (Mathf.Abs(horz) > 0 || Mathf.Abs(vert) > 0 && !handbrakeActive)
         {
+            //float velocityScale = rb.velocity.y / MaxForwardVelocity;
+            //Mathf.Clamp(velocityScale, 0f, 0.5f);
+
             if (isCruiseControlActive)
             {
                 // do not Accelerate in Y.
@@ -221,25 +256,36 @@ public class CarController : MonoBehaviour
             rb.velocity = new Vector2(MaxSideWaysVelocity, rb.velocity.y);
         }
 
+        if (crashed)
+        {
+            Debug.Log("crash speed penalty??");
+            crashed = false;
+            rb.velocity = new Vector2(rb.velocity.x, VelocityAfterCrash);
+            payCrashPenalty = true; // lose gas.
+        }
+
+        if(rb.velocity.sqrMagnitude < 0.1f)
+        {
+            GameManager.Instance.StopEngineLoop();
+        }
         CalculateScore(rb.velocity);
-        CalculateFuelConsumption(rb.velocity, handbrakeActive, payCrashPenalty);
-        velocityText.text = string.Format("Speed:{0}", rb.velocity.y.ToString("F1"));
+        CalculateFuelConsumption(vert, rb.velocity, handbrakeActive, payCrashPenalty);
+
+        uiController.ShowSpeed(rb.velocity);
     }
 
     private void CalculateScore(Vector2 velocity)
     {
         distanceTravelled += velocity.magnitude * Time.deltaTime;
-        UpdateScore(distanceTravelled * ScoreMultiplier);
+        uiController.UpdateScore((int)(distanceTravelled * ScoreMultiplier));
     }
 
-    private void CalculateFuelConsumption(Vector2 currVelocity, bool usedHandbrake, bool hasCrashed)
+    private void CalculateFuelConsumption(float vertMove, Vector2 currVelocity, bool usedHandbrake, bool hasCrashed)
     {
+        float unscaledConsumption, scaledConsumption, extraConsumptionDueToEngineWear, speedConsumption;
 
-        // currVelocity scaled to [0,1]
-        float unscaledConsumption, scaledConsumption;
         if(currVelocity.sqrMagnitude > 0.01)
         {
-
             // calculate engine wear & tear
             float wearAmount = EngineWear * Time.deltaTime;
             if (hasCrashed)
@@ -251,74 +297,79 @@ public class CarController : MonoBehaviour
             {
                 engineDurability = 0f;
             }
-            
+
+
             // moving, calculate Fuel consumption
             float velocityScale = currVelocity.magnitude / maxVelocityMgn;
             unscaledConsumption = FuelConsumptionCurve.Evaluate(velocityScale) * MaxConsumption;
+            speedConsumption = unscaledConsumption;
 
+            if (currVelocity.sqrMagnitude > 0.01 && !isCruiseControlActive && gasPedalUnpressedFor > 0.1f)
+            {
+                // then not using the gas pedal at all, shouldnt consumpt any more gas?
+
+                // Slowly decrease consumption to 0.
+                // decrease "unscaledConsumption". others will change depending on it.
+                float unpressTime = gasPedalUnpressedFor / gasPedalUnpressedMaxDuration;
+                unpressTime = Mathf.Clamp(unpressTime, 0f, 1f);
+                unscaledConsumption = Mathf.Lerp(0, unscaledConsumption, 1 - unpressTime);
+            }
             // worst case, x2 fuel consumption.
-            float extraConsumptionDueToEngineWear = (MaxEngineDurability - engineDurability) * unscaledConsumption / 100f;
+            extraConsumptionDueToEngineWear = (MaxEngineDurability - engineDurability) * unscaledConsumption / 100f;
             unscaledConsumption += extraConsumptionDueToEngineWear;
-
-
-            UpdateEngineDurability(engineDurability, extraConsumptionDueToEngineWear);
+            uiController.UpdateEngineDurability(engineDurability);
 
             if (usedHandbrake)
             {
                 unscaledConsumption += handbrakeFuelCost;
-            }
-            if (hasCrashed)
-            {
-                unscaledConsumption += crashFuelCost;
             }
             scaledConsumption = Time.deltaTime * unscaledConsumption;
             //Debug.LogFormat("Consumption for t:{0}, UnscaledVal: {1}, Scaled: {2}", velocityScale, unscaledConsumption, scaledConsumption);
 
         }
         else
-        {
-            unscaledConsumption = scaledConsumption = 0f;
+        { // not moving at all!
+            unscaledConsumption = scaledConsumption = extraConsumptionDueToEngineWear = speedConsumption = 0f;
         }
 
-        // how to calculate consumption per second? (to show on UI)
+
+        if (hasCrashed)
+        {
+            scaledConsumption += crashFuelCost;
+            uiController.DoCrashFuelDecreaseAnim();
+        }
+
+        float consumptionScale = unscaledConsumption / (MaxConsumption + extraConsumptionDueToEngineWear);
+        consumptionScale = Mathf.Clamp(consumptionScale, 0f, 1f);
+        uiController.UpdateFuelConsumptionIndicatorRotation(consumptionScale);
 
         remainingFuel -= scaledConsumption;
-        if(remainingFuel < 0)
+        uiController.UpdateFuelUI(extraConsumptionDueToEngineWear, speedConsumption, unscaledConsumption, remainingFuel, MaxFuel);
+        if (remainingFuel < 0)
         {
             remainingFuel = 0;
             gameOver = true;
             Debug.Log("Out of gas! Game over.");
+            uiController.ShowGameOver();
         }
-        UpdateFuelUI(unscaledConsumption, remainingFuel);
     }
 
-    private void UpdateEngineDurability(float currDurability, float extraConsumption)
-    {
-        engineWearText.text = string.Format("Engine Durability: {0} \n Extra consumption due to wear:{1}", currDurability.ToString("F0"), extraConsumption.ToString("F1"));
-    }
-    private void UpdateScore(float score)
-    {
-        distanceTravelledText.text = "Score: " + ((int)score).ToString();
-    }
-    private void UpdateFuelUI(float currConsumption, float remainingFuel)
-    {
-        fuelConsumptionText.text = "Current Consumption: " + currConsumption.ToString("F2");
-        remainingFuelText.text = "Remaining Fuel: " + remainingFuel.ToString("F1");
-    }
     private void OnCruiseActive()
     {
+        gasPedalUnpressedFor = 0f;
         targetCruiseVelocity = rb.velocity.y;
-        cruiseControlText.text = "Cruising at: " + targetCruiseVelocity.ToString("F1");
+        uiController.CruiseControlActivated(targetCruiseVelocity);
     }
     private void OnCruiseDisabled()
     {
         targetCruiseVelocity = -1f;
-        cruiseControlText.text = "Press 'C' to activate Cruise control";
+        uiController.CruiseControlDisabled();
     }
-
 
     public void StationTriggered()
     {
+        uiController.OnStationEnter();
+
         // slow down time?
         Time.timeScale = SlowDownTimeScale;
 
@@ -341,5 +392,81 @@ public class CarController : MonoBehaviour
     {
         Time.timeScale = 1f; //unfreeze
         StationTriggerPopup.SetActive(false); // hide popup
+
+        uiController.OnStationExit();
     }
+
+    public void GainFuel(float amount)
+    {
+        remainingFuel = Mathf.Clamp(remainingFuel + amount, remainingFuel, MaxFuel);
+    }
+    public void DoFuelGainAnim(Action callback)
+    {
+        uiController.DoFuelIncreaseAnimation(remainingFuel, MaxFuel, callback);
+    }
+    public void GainDurability(float amount)
+    {
+        engineDurability = Mathf.Clamp(engineDurability + amount, engineDurability, 100f);
+        uiController.OnStationExit();
+
+    }
+
+    public void SetPlayerVehicle(Vehicle selected)
+    {
+        playerVehicleRenderer.sprite = selected.visual;
+
+        playerCollider.size = selected.colliderSize;
+
+        MaxFuel = selected.MaxFuel;
+        MaxConsumption = selected.MaxConsumption;
+        MaxEngineDurability = selected.MaxDurability;
+
+        MaxSideWaysVelocity = selected.MaxSideWaysVelocity;
+        MaxForwardVelocity = selected.MaxForwardVelocity;
+        MinForwardVelocity = selected.MinForwardVelocity;
+        MinSidewaysVelocity = selected.MinSidewaysVelocity;
+
+        VerticalSpeed = selected.VerticalSpeed;
+        HorizontalSpeed = selected.HorizontalSpeed;
+
+        maxVelocityMgn = new Vector2(MaxSideWaysVelocity, MaxForwardVelocity).magnitude;
+        handbrakeFuelCost = handbrakeFuelCostPerct * MaxFuel / 100f;
+        crashFuelCost = crashFuelCostPerct * MaxFuel / 100f;
+
+        remainingFuel = MaxFuel;
+        engineDurability = MaxEngineDurability;
+
+        _currVehicle = selected; // restart purposes
+
+    }
+
+    public void RestartGame()
+    {
+        Time.timeScale = 1f;
+        GameManager.Instance.PlayButtonClick();
+        SceneManager.LoadScene("Main");
+
+        //isCruiseControlActive = false;
+        //targetCruiseVelocity = 0f;
+        //crashed = false;
+        //gameOver = false;
+
+        //SetPlayerVehicle(_currVehicle);
+    }
+
+    public void BackToMainMenu()
+    {
+        Time.timeScale = 1f;
+        GameManager.Instance.StopEngineLoop();
+        GameManager.Instance.StopHandbrakeSfx();
+        GameManager.Instance.PlayButtonClick();
+        GameManager.Instance.StopBgm();
+        SceneManager.LoadScene("Start");
+    }
+
+    public void Quit()
+    {
+        Application.Quit();
+    }
+
 }

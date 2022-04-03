@@ -6,7 +6,8 @@ public class Road : MonoBehaviour
 {
     public Transform NextRoadPos;
     public SpriteRenderer mainRenderer;
-    public List<CarSpawnOption> CarSpawnOptions;
+    public List<CarSpawnOption> CarSpawnOptions; 
+    public List<CarSpawnOption> PropSpawnOptions;
 
     public GameObject regularColliders;
     public GameObject stationColliders;

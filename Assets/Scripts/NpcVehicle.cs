@@ -60,7 +60,7 @@ public class NpcVehicle : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Player"))
         {
-            Debug.LogFormat("Vehicle: {0} collide w/ player. it will disappear.", gameObject.name);
+            //Debug.LogFormat("Vehicle: {0} collide w/ player. it will disappear.", gameObject.name);
             var playerControl = collision.gameObject.GetComponent<CarController>();
             playerControl.OnAnotherCarCrash();
 
