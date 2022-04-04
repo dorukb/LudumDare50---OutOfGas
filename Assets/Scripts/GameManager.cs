@@ -26,19 +26,31 @@ public class GameManager : MonoBehaviour
     public AudioClip buttonClickClip;
     public AudioClip crashClip;
 
+    public AudioClip repairClip;
+    public AudioClip refuelClip;
+    public AudioClip outOfGasClip;
+
     public float engineSoundMaxVolume = 0.3f;
 
     [HideInInspector]
     public Vehicle selectedVehicle;
 
     public int Highscore = 0;
+
+    public float engineSoundPlayerSetValue = 1f;
+
     private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
             DontDestroyOnLoad(this.gameObject);
+
             SelectYellowCar(true);
+            if(engineSource.volume > engineSoundMaxVolume)
+            {
+                engineSource.volume = engineSoundMaxVolume;
+            }
         }
         else
         {
@@ -49,7 +61,10 @@ public class GameManager : MonoBehaviour
 
     public void SelectYellowCar(bool noSound = false)
     {
-        if(!noSound) Instance.PlayButtonClick();
+        if (!noSound)
+        {
+            Instance.PlayButtonClick();
+        }
         selectedType = VehicleType.YellowCar;
         selectedVehicle = yellowCar;
     }
@@ -63,11 +78,28 @@ public class GameManager : MonoBehaviour
     public void LoadMainScene()
     {
         GameManager.Instance.PlayButtonClick();
+
+        engineSource.volume = engineSoundMaxVolume * engineSoundPlayerSetValue;
         SceneManager.LoadScene("Main");
 
         Instance.PlayBgmLoop();
     }
 
+    public void SetBgmVol(float vol)
+    {
+        bgmSource.volume = vol;
+    }
+
+    public void SetSfxVol(float vol)
+    {
+        sfxSource.volume = vol;
+    }
+    public void SetEngineVol(float vol)
+    {
+        engineSource.volume = vol * engineSoundMaxVolume;
+
+        engineSoundPlayerSetValue = vol * engineSoundMaxVolume;
+    }
     public void PlayCrashSfx()
     {
         sfxSource.PlayOneShot(crashClip, 0.5f);
@@ -89,8 +121,11 @@ public class GameManager : MonoBehaviour
     }
     public void PlayEngineLoop(float volumeFactor, float releasePerct)
     {
-        float vol = engineSoundMaxVolume * volumeFactor;
-        if (vol > engineSoundMaxVolume) vol = engineSoundMaxVolume;
+        //Debug.Log("Play engine loop");
+        float actualMax = engineSoundMaxVolume * engineSoundPlayerSetValue;
+
+        float vol = actualMax * volumeFactor;
+        if (vol > actualMax) vol = actualMax;
 
         if (engineSource.isPlaying)
         {
@@ -116,8 +151,25 @@ public class GameManager : MonoBehaviour
             engineSource.Play();
         }
     }
+
+    public void PlayOutOfGas()
+    {
+        sfxSource.PlayOneShot(outOfGasClip);
+    }
+    public void PlayRepairSound()
+    {
+        sfxSource.PlayOneShot(repairClip);
+    }
+
+    public void PlayRefuelSfx()
+    {
+        sfxSource.PlayOneShot(refuelClip);
+    }
     public void StopEngineLoop()
     {
+        //Debug.Log("engine loop stopped");
+        engineSource.volume = engineSoundMaxVolume* engineSoundPlayerSetValue;
+        engineSource.loop = false;
         engineSource.Stop();
     }
 
@@ -127,7 +179,7 @@ public class GameManager : MonoBehaviour
     }
     public void PlayBgmLoop()
     {
-        if(bgmClip != null)
+        if(bgmClip != null && !bgmSource.isPlaying)
         {
             bgmSource.clip = bgmClip;
             bgmSource.loop = true;

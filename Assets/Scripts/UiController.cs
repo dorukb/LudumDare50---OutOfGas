@@ -79,6 +79,7 @@ public class UiController : MonoBehaviour
     }
     public void OnHowToPlayButton()
     {
+        PlayButtonClick();
         if (HowToPlayUI.activeSelf)
         {
             HowToPlayUI.SetActive(false);
@@ -90,6 +91,7 @@ public class UiController : MonoBehaviour
     }
     public void OnResumeButton()
     {
+        PlayButtonClick();
         PauseUI.SetActive(false);
         Time.timeScale = 1f;
         PauseUI.SetActive(false);
@@ -147,6 +149,8 @@ public class UiController : MonoBehaviour
     public void DoFuelIncreaseAnimation(float currFuel, float maxFuel, Action callback)
     {
         fuelIncreaseAnimActive = true;
+
+        GameManager.Instance.PlayRefuelSfx();
         StartCoroutine(FuelIncreaseAnim(currFuel / maxFuel, callback));
     }
     public void CruiseControlActivated(float velocity)
@@ -164,6 +168,8 @@ public class UiController : MonoBehaviour
     }
     public void ShowGameOver()
     {
+        GameManager.Instance.PlayOutOfGas();
+
         gameOverScreen.SetActive(true);
         goScoreText.text = scoreText.text;
         goHighscoreText.text = highscoreText.text;
@@ -172,7 +178,10 @@ public class UiController : MonoBehaviour
     {
         velocityText.text = vel.y.ToString("F1");
     }
-
+    public void PlayButtonClick()
+    {
+        GameManager.Instance.PlayButtonClick();
+    }
     private IEnumerator FuelIncreaseAnim(float targetFillAmount, Action callback)
     {
         float timePassed = 0f;

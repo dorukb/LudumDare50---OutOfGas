@@ -43,7 +43,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
   m_PlayOnAwake: 0
-  m_Volume: 0.41
+  m_Volume: 0.8
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -308,11 +308,16 @@ MonoBehaviour:
   engineSource: {fileID: 3505380408370349631}
   handbrakeClip: {fileID: 8300000, guid: 522fd2652180ea6489973878938f5533, type: 3}
   engineClip: {fileID: 8300000, guid: 19c788bbd0c6e614cbc7818663f248d1, type: 3}
-  bgmClip: {fileID: 0}
+  bgmClip: {fileID: 8300000, guid: 3795e6e68999fe54899d26f321a27728, type: 3}
   buttonClickClip: {fileID: 8300000, guid: 1acc9e685e608c642b20af30f6d4c6b2, type: 3}
   crashClip: {fileID: 8300000, guid: 37f5498c2d3e2e94da62e517fef1a5fe, type: 3}
-  engineSoundMaxVolume: 0.27
+  repairClip: {fileID: 8300000, guid: ee3f8ae5803f2e84db4ab2033fbbbb57, type: 3}
+  refuelClip: {fileID: 8300000, guid: 51076bd23430d31429db726673c88551, type: 3}
+  outOfGasClip: {fileID: 8300000, guid: fd0ddb6189f9b654c9c22c07d9de09c8, type: 3}
+  engineSoundMaxVolume: 0.48
   selectedVehicle: {fileID: 0}
+  Highscore: 0
+  engineSoundPlayerSetValue: 1
 --- !u!82 &3505380409498268893
 AudioSource:
   m_ObjectHideFlags: 0

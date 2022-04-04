@@ -1655,7 +1655,7 @@ MonoBehaviour:
   roadPoolSize: 5
   vehiclePoolSize: 25
   propPoolSize: 50
-  stationSpawnPeriod: 12
+  stationSpawnPeriod: 10
 --- !u!1 &590599260
 GameObject:
   m_ObjectHideFlags: 0
@@ -4899,7 +4899,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: HOW TO PLAY?
+  m_text: HOW TO PLAY
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 9f2c5ac1ffa2a1b4897f3acd5432c722, type: 2}
   m_sharedMaterial: {fileID: 8672274212173779414, guid: 9f2c5ac1ffa2a1b4897f3acd5432c722, type: 2}
@@ -5130,10 +5130,10 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   MaxConsumption: 24
-  EngineWear: 2
+  EngineWear: 1.5
   handbrakeFuelCostPerct: 5
-  crashFuelCostPerct: 20
-  crashStatusDecrease: 20
+  crashFuelCostPerct: 15
+  crashStatusDecrease: 30
   MaxFuel: 999
   gasPedalUnpressedMaxDuration: 5
   MaxEngineDurability: 100
@@ -6650,14 +6650,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Game Manager
       objectReference: {fileID: 0}
-    - target: {fileID: 3505380409498268895, guid: 56bfe08fff0c88243aa8217fecf170fe, type: 3}
-      propertyPath: crashClip
-      value: 
-      objectReference: {fileID: 8300000, guid: 37f5498c2d3e2e94da62e517fef1a5fe, type: 3}
-    - target: {fileID: 3505380409498268895, guid: 56bfe08fff0c88243aa8217fecf170fe, type: 3}
-      propertyPath: buttonClickClip
-      value: 
-      objectReference: {fileID: 8300000, guid: 1acc9e685e608c642b20af30f6d4c6b2, type: 3}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 56bfe08fff0c88243aa8217fecf170fe, type: 3}
 --- !u!1 &1688085217
@@ -8587,7 +8579,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: -56
-  m_Sprite: {fileID: 21300000, guid: 0c8aadf96db437e4cad1f78e84ab48d5, type: 3}
+  m_Sprite: {fileID: 21300000, guid: abdd7e49772ebf843863b84769e786d2, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0

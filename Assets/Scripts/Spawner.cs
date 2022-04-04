@@ -77,7 +77,7 @@ public class Spawner : MonoBehaviour
                 if (roadSpawnCount % stationSpawnPeriod == 0)
                 {
                     // Setup as StationRoad
-                    Debug.Log("Station!");
+                    //Debug.Log("Station!");
                     spawnEnvironmentProps = false;
                     newRoadScript.Setup(true);
                 }
@@ -94,12 +94,11 @@ public class Spawner : MonoBehaviour
                     CarSpawnOption opt = newRoadScript.PropSpawnOptions[Random.Range(0, newRoadScript.PropSpawnOptions.Count)];
                     foreach (Transform spawnPos in opt.SpawnPositions)
                     {
-                        Debug.LogFormat("Will spawn {0} props.", opt.SpawnPositions.Count);
+                        //Debug.LogFormat("Will spawn {0} props.", opt.SpawnPositions.Count);
 
                         // setup a Prop from the pool to appear at that position.
                         GameObject prop = props[activePropIndex];
                         prop.GetComponent<SpriteRenderer>().sprite = propSprites[Random.Range(0, propSprites.Count)];
-                        Debug.Log("asdsad");
 
                         prop.transform.position = spawnPos.position;
                         prop.SetActive(true);

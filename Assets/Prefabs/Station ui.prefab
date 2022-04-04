@@ -590,8 +590,8 @@ MonoBehaviour:
   fuelAmountText: {fileID: 862994367566537454}
   repairAmountText: {fileID: 8625848792195161670}
   greyedOutColor: {r: 0.27450982, g: 0.27450982, b: 0.27450982, a: 0.80784315}
-  fuelIncrease: 100
-  durabilityIncrease: 30
+  fuelIncrease: 200
+  durabilityIncrease: 60
 --- !u!1 &7967500470147181351
 GameObject:
   m_ObjectHideFlags: 0

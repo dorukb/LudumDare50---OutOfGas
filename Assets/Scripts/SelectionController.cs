@@ -17,9 +17,10 @@ public class SelectionController : MonoBehaviour
     {
         OnSelectCar(true);
     }
-    public void OnSelectCar(bool isFake = false)
+    public void OnSelectCar(bool noSound = false)
     {
-        if(!isFake) GameManager.Instance.SelectYellowCar();
+        Debug.Log("on select car: noSound:" + noSound);
+        GameManager.Instance.SelectYellowCar(noSound);
         GoButton.interactable = true;
 
         carImage.color = selectedColor;

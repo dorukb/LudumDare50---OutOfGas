@@ -258,7 +258,7 @@ public class CarController : MonoBehaviour
 
         if (crashed)
         {
-            Debug.Log("crash speed penalty??");
+            //Debug.Log("crash speed penalty??");
             crashed = false;
             rb.velocity = new Vector2(rb.velocity.x, VelocityAfterCrash);
             payCrashPenalty = true; // lose gas.
@@ -466,6 +466,7 @@ public class CarController : MonoBehaviour
 
     public void Quit()
     {
+        GameManager.Instance.PlayButtonClick();
         Application.Quit();
     }
 

@@ -143,6 +143,7 @@ public class StationUIController : MonoBehaviour
         else if(selected == StationAction.Repair)
         {
             Debug.Log("Repair option chosen. gain durability.");
+            GameManager.Instance.PlayRepairSound();
             player.GainDurability(durabilityIncrease);
             OnFuelIncreaseAnimationEnd();
         }
