@@ -7,6 +7,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1910756076897050197, guid: e5c28f9012a198043a9772cd7d7acdab, type: 3}
+      propertyPath: m_Size.y
+      value: 7.28
+      objectReference: {fileID: 0}
     - target: {fileID: 2751321432580744982, guid: e5c28f9012a198043a9772cd7d7acdab, type: 3}
       propertyPath: m_Sprite
       value: 
@@ -57,7 +61,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7146188520730711934, guid: e5c28f9012a198043a9772cd7d7acdab, type: 3}
       propertyPath: m_Name
-      value: NpcCarBLue
+      value: NpcCarBlue
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e5c28f9012a198043a9772cd7d7acdab, type: 3}

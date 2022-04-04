@@ -13,7 +13,7 @@ public class UiController : MonoBehaviour
     public TextMeshProUGUI cruiseControlText;
     public Animator cruiseAnimator;
     public GameObject cKey;
-
+    public float velScale;
     [Header("Fuel")]
     public TextMeshProUGUI totalConsumptionText;
     public TextMeshProUGUI baseConsumptionText;
@@ -155,7 +155,8 @@ public class UiController : MonoBehaviour
     }
     public void CruiseControlActivated(float velocity)
     {
-        cruiseControlText.text = "LIMIT SET TO: " + velocity.ToString("F1") + "\n PRESS C TO DISABLE.";
+        float displayVel = velocity * velScale;
+        cruiseControlText.text = "LIMIT SET TO: " + displayVel.ToString("F1") + "\n PRESS C TO DISABLE.";
 
         cKey.SetActive(false);
         cruiseAnimator.SetBool("cruiseActive", true);
@@ -176,7 +177,8 @@ public class UiController : MonoBehaviour
     }
     public void ShowSpeed(Vector2 vel)
     {
-        velocityText.text = vel.y.ToString("F1");
+        float displayVel = vel.y * velScale;
+        velocityText.text = displayVel.ToString("F1");
     }
     public void PlayButtonClick()
     {

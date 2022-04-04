@@ -349,6 +349,10 @@ public class CarController : MonoBehaviour
         {
             remainingFuel = 0;
             gameOver = true;
+
+            Time.timeScale = 1f; //unfreeze
+            StationTriggerPopup.SetActive(false); // hide popup
+
             Debug.Log("Out of gas! Game over.");
             uiController.ShowGameOver();
         }

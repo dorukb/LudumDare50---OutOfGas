@@ -22,4 +22,4 @@ MonoBehaviour:
   MinSidewaysVelocity: 5
   MaxSideWaysVelocity: 9
   MaxForwardVelocity: 50
-  colliderSize: {x: 2.8, y: 6.2}
+  colliderSize: {x: 2.15, y: 5}
